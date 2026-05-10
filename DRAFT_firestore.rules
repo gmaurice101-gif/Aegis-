@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- People Collection ---
+    match /people/{personId} {
+      function isValidPerson(data) {
+        return data.size() >= 4 && data.size() <= 10
+          && data.id is string && data.id.size() <= 128
+          && data.name is string && data.name.size() <= 100
+          && data.role is string && data.role.size() <= 50
+          && data.status in ['VIP', 'Staff', 'Citizen', 'Unknown']
+          && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 2000000))
+          && (!('lastSeen' in data) || data.lastSeen is string)
+          && (!('createdAt' in data) || data.createdAt == request.time);
+      }
+
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() 
+        && isValidId(personId) 
+        && isValidPerson(incoming())
+        && incoming().id == personId;
+
+      allow update: if isSignedIn()
+        && isValidPerson(incoming())
+        && incoming().id == existing().id
+        && (
+          // Action: Update Last Seen
+          incoming().diff(existing()).affectedKeys().hasOnly(['lastSeen'])
+          || 
+          // Action: Full Edit (Limited to specific fields)
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'status', 'imageUrl', 'lastSeen'])
+        );
+    }
+
+    // --- Events Collection ---
+    match /events/{eventId} {
+      function isValidEvent(data) {
+        return data.size() >= 3 && data.size() <= 10
+          && data.id is string && data.id.size() <= 128
+          && data.timestamp == request.time
+          && data.confidence is number && data.confidence >= 0 && data.confidence <= 100
+          && (!('personId' in data) || (data.personId is string && data.personId.size() <= 128))
+          && (!('location' in data) || (data.location is string && data.location.size() <= 100))
+          && (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 2000000));
+      }
+
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() 
+        && isValidId(eventId) 
+        && isValidEvent(incoming());
+    }
+  }
+}

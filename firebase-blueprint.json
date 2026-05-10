@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Person": {
+      "title": "Person",
+      "description": "Information about an identified person at the rally",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "status": { "type": "string", "enum": ["VIP", "Staff", "Citizen", "Unknown"] },
+        "imageUrl": { "type": "string" },
+        "descriptor": { "type": "array", "items": { "type": "number" }, "description": "Face descriptor vector" },
+        "lastSeen": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "role", "status"]
+    },
+    "RecognitionEvent": {
+      "title": "Recognition Event",
+      "description": "Log of a specific facial recognition event",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "personId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "confidence": { "type": "number" },
+        "location": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "confidence"]
+    }
+  },
+  "firestore": {
+    "people": {
+      "schema": "Person",
+      "description": "Collection of registered people"
+    },
+    "events": {
+      "schema": "RecognitionEvent",
+      "description": "Live log of recognition events"
+    }
+  }
+}

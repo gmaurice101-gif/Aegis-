@@ -1,0 +1,12 @@
+{
+  "name": "RallyFace AI",
+  "description": "Facial recognition and crowd analysis platform for monitoring event attendance and identifying visitors at large gatherings.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "Facial Recognition",
+    "Real-time Crowd Analytics",
+    "People Management"
+  ]
+}
