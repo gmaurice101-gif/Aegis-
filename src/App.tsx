@@ -35,6 +35,7 @@ export default function App() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [regName, setRegName] = useState('');
   const [regRole, setRegRole] = useState('Citizen');
+  const [isWatchlist, setIsWatchlist] = useState(false);
   const [regImage, setRegImage] = useState<string | null>(null);
   const [regDescriptor, setRegDescriptor] = useState<number[] | null>(null);
   const [alerts, setAlerts] = useState<{ id: string; name: string; time: string }[]>([]);
@@ -59,7 +60,7 @@ export default function App() {
     await registerPerson({
       name: regName,
       role: regRole,
-      status: regRole as any,
+      status: isWatchlist ? 'VIP' : (regRole as any),
       imageUrl: finalImage,
       descriptor: finalDescriptor,
       lastSeen: new Date().toLocaleTimeString(),
@@ -67,6 +68,7 @@ export default function App() {
 
     setIsRegistering(false);
     setRegName('');
+    setIsWatchlist(false);
     setRegImage(null);
     setRegDescriptor(null);
   };
@@ -158,7 +160,10 @@ export default function App() {
   }
   
   return (
-    <div className="flex h-screen bg-[#0a0a0c] text-slate-300 font-sans selection:bg-indigo-500/30 overflow-hidden">
+    <div className={cn(
+      "flex h-screen bg-[#0a0a0c] text-slate-300 font-sans selection:bg-indigo-500/30 overflow-hidden transition-all duration-700",
+      alerts.length > 0 && "ring-8 ring-red-600/30 ring-inset"
+    )}>
       {/* Sidebar Navigation */}
       <nav className="w-20 flex flex-col items-center py-8 gap-10 border-r border-white/5 bg-[#0f0f12]">
         <div className="w-10 h-10 bg-indigo-600 rounded flex items-center justify-center shadow-lg shadow-indigo-600/20">
@@ -453,6 +458,27 @@ export default function App() {
                       <Search className="w-4 h-4" />
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <div className={cn(
+                      "w-6 h-6 rounded border flex items-center justify-center transition-all",
+                      isWatchlist ? "bg-red-600 border-red-500 shadow-[0_0_10px_rgba(220,38,38,0.4)]" : "bg-white/5 border-white/10 group-hover:border-white/20"
+                    )}>
+                      {isWatchlist && <Shield className="w-4 h-4 text-white" />}
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={isWatchlist} 
+                      onChange={(e) => setIsWatchlist(e.target.checked)} 
+                      className="hidden" 
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold text-white uppercase tracking-wider">Flag as Watchlist Priority</span>
+                      <span className="text-[9px] text-slate-500 font-mono">Triggers high-priority visual alerts on detection</span>
+                    </div>
+                  </label>
                 </div>
 
                 <div className="pt-6 flex gap-4">

@@ -137,17 +137,22 @@ const VideoFeed = forwardRef<VideoFeedHandle, { onMatch?: (personId: string, nam
             // Calculate similarity (Cosine distance)
             const similarity = humanRef.current.match.similarity(face.embedding, person.descriptor);
             
-            if (similarity > 0.85) {
+            if (similarity > 0.82) {
               // High confidence match found
+              const isPriority = person.status === 'VIP';
+              
               if (Date.now() - lastLogTime.current > 10000) { // Throttle alerts to 10s
                 const frame = (ref as any).current?.captureFrame();
                 logEvent({
                   personId: person.id,
                   confidence: Math.round(similarity * 100),
-                  location: 'Main Entrance - Managed Guard',
+                  location: isPriority ? 'WATCHLIST HIT - SECTOR 1' : 'Main Entrance - Managed Guard',
                   imageUrl: frame || undefined
                 });
-                props.onMatch?.(person.id, person.name);
+                
+                if (isPriority || similarity > 0.9) {
+                  props.onMatch?.(person.id, person.name);
+                }
                 lastLogTime.current = Date.now();
               }
               break;
